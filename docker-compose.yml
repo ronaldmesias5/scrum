@@ -1,0 +1,186 @@
+# ============================================================
+# CALZADO J&R — Docker Compose (entorno de desarrollo)
+# ============================================================
+# ¿Qué?    Orquesta los 3 servicios del sistema: BD, BE y FE.
+# ¿Para?   Un único `docker compose up -d` levanta todo el stack
+#           con la configuración correcta y en el orden adecuado.
+# ¿Impacto? Elimina dependencias locales (Python, Node, PostgreSQL).
+#           Todo corre dentro de contenedores aislados en una red
+#           interna privada. Los puertos del host son solo para
+#           acceso del desarrollador (navegador, psql, etc.).
+#
+# REQUISITO: Copiar .env.example → .env y completar los valores.
+#   cp .env.example .env
+# ============================================================
+
+services:
+  # ──────────────────────────────────────────────────────────
+  # 🐘 db — PostgreSQL 17
+  # ¿Qué?    Motor de base de datos relacional.
+  # ¿Para?   Almacenar usuarios, roles y tokens de forma persistente.
+  # ¿Impacto? Tag "alpine" = imagen mínima (~10 MB vs ~200 MB full).
+  #           El healthcheck bloquea al backend hasta que PostgreSQL
+  #           esté listo para aceptar conexiones (evita errores de
+  #           "connection refused" al arrancar).
+  # ──────────────────────────────────────────────────────────
+  db:
+    image: postgres:17-alpine
+    container_name: calzado_jyr_db
+    restart: unless-stopped
+
+    environment:
+      # ¿Por qué variables de entorno y no valores directos?
+      # Seguridad: el docker-compose.yml se versiona en git.
+      # Las credenciales reales van solo en el .env (ignorado por git).
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+
+    ports:
+      # Formato host:contenedor — solo expone al desarrollador local.
+      # En producción, no exponer este puerto (acceso solo desde la red interna).
+      - "${DB_PORT:-5432}:5432"
+
+    volumes:
+      # Volumen nombrado: los datos sobreviven `docker compose down`.
+      # Sin este volumen, cada `down` borra toda la BD.
+      - calzado_jyr_data:/var/lib/postgresql/data
+      # Scripts .sql en este directorio se ejecutan al crear el contenedor
+      # por primera vez (orden alfabético). Son idempotentes (IF NOT EXISTS).
+      - ./db/init:/docker-entrypoint-initdb.d:ro
+
+    healthcheck:
+      # pg_isready verifica que PostgreSQL acepta conexiones TCP en el puerto.
+      # interval: cada 10s intenta; retries: 5 intentos antes de "unhealthy".
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 15s
+
+    networks:
+      - calzado_jyr_net
+
+  # ──────────────────────────────────────────────────────────
+  # 🚀 be — Backend FastAPI
+  # ¿Qué?    API REST construida con FastAPI + SQLAlchemy.
+  # ¿Para?   Procesar solicitudes HTTP del frontend y comunicarse
+  #           con PostgreSQL a través del ORM.
+  # ¿Impacto? `depends_on condition: service_healthy` garantiza que
+  #           el backend NO arranca hasta que la BD esté lista.
+  #           El volumen ./be:/app habilita --reload: cada cambio
+  #           en código Python reinicia el servidor automáticamente.
+  # ──────────────────────────────────────────────────────────
+  be:
+    build:
+      context: ./be
+      dockerfile: Dockerfile
+      # target: dev usa el stage "dev" del Dockerfile (hot-reload).
+      # Cambiar a "prod" para despliegue (workers múltiples, sin reload).
+      target: dev
+    container_name: calzado_jyr_be
+    restart: unless-stopped
+
+    depends_on:
+      db:
+        # service_healthy: espera al healthcheck exitoso, NO solo al start.
+        # Diferencia crítica: el contenedor puede estar "running" pero
+        # PostgreSQL aún inicializando — service_healthy lo resuelve.
+        condition: service_healthy
+
+    environment:
+      # ¿Por qué "db" como host y no "localhost"?
+      # Dentro de la red Docker, los servicios se comunican por nombre.
+      # "db" es el nombre del servicio definido arriba.
+      DATABASE_URL: postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB}
+
+      SECRET_KEY: ${SECRET_KEY}
+      ALGORITHM: ${ALGORITHM:-HS256}
+      ACCESS_TOKEN_EXPIRE_MINUTES: ${ACCESS_TOKEN_EXPIRE_MINUTES:-15}
+      REFRESH_TOKEN_EXPIRE_DAYS: ${REFRESH_TOKEN_EXPIRE_DAYS:-7}
+
+      MAIL_SERVER: ${MAIL_SERVER}
+      MAIL_PORT: ${MAIL_PORT:-587}
+      MAIL_USERNAME: ${MAIL_USERNAME}
+      MAIL_PASSWORD: ${MAIL_PASSWORD}
+      MAIL_FROM: ${MAIL_FROM}
+      MAIL_FROM_NAME: ${MAIL_FROM_NAME}
+
+      # El frontend necesita coincidir: CORS solo permitirá esta URL.
+      FRONTEND_URL: ${FRONTEND_URL:-http://localhost:5173}
+
+    ports:
+      - "${BE_PORT:-8000}:8000"
+
+    volumes:
+      # Montar el código fuente para hot-reload (solo en dev).
+      # En producción el código se copia dentro de la imagen (stage prod).
+      - ./be:/app
+
+    networks:
+      - calzado_jyr_net
+
+  # ──────────────────────────────────────────────────────────
+  # 🌐 fe — Frontend React + Vite
+  # ¿Qué?    Interfaz de usuario en React 19 + TypeScript + Tailwind.
+  # ¿Para?   Servir la aplicación web con hot-reload en desarrollo.
+  # ¿Impacto? Vite HMR (Hot Module Replacement) actualiza el navegador
+  #           en milisegundos al guardar cualquier componente.
+  #   - ./fe:/app → código del host dentro del contenedor.
+  #   - /app/node_modules → volumen anónimo que preserva los
+  #     node_modules instalados en la imagen (evita que el mount
+  #     del host los sobreescriba con un directorio vacío).
+  # ──────────────────────────────────────────────────────────
+  fe:
+    build:
+      context: ./fe
+      dockerfile: Dockerfile
+      target: dev
+    container_name: calzado_jyr_fe
+    restart: unless-stopped
+
+    depends_on:
+      - be
+
+    environment:
+      # Vite expone variables VITE_* al código del navegador (public).
+      # Apunta al backend: el navegador llama a localhost porque el
+      # puerto del host está mapeado al contenedor be.
+      VITE_API_URL: ${VITE_API_URL:-http://localhost:8000}
+
+    ports:
+      - "${FE_PORT:-5173}:5173"
+
+    volumes:
+      - ./fe:/app
+      # ¿Por qué este volumen anónimo en node_modules?
+      # El volumen ./fe:/app monta el directorio del host dentro del
+      # contenedor. Si node_modules no existe en el host, Docker lo
+      # crea vacío y tapa los que instaló npm durante el build.
+      # Este volumen anónimo "protege" node_modules del override.
+      - /app/node_modules
+
+    networks:
+      - calzado_jyr_net
+
+# ──────────────────────────────────────────────────────────
+# 🔗 Red interna privada
+# ¿Qué?    Red virtual bridge exclusiva para este proyecto.
+# ¿Para?   Aislar la comunicación entre servicios. Ningún
+#           contenedor externo puede acceder a esta red.
+# ¿Impacto? db NO es accesible desde internet, solo desde be.
+#           Principio de mínimo privilegio en redes de contenedores.
+# ──────────────────────────────────────────────────────────
+networks:
+  calzado_jyr_net:
+    driver: bridge
+
+# ──────────────────────────────────────────────────────────
+# 📦 Volúmenes nombrados
+# ¿Qué?    Almacenamiento persistente gestionado por Docker.
+# ¿Para?   Los datos de PostgreSQL sobreviven `docker compose down`.
+# ¿Impacto? `docker compose down -v` BORRA los datos (útil para reset).
+#           `docker compose down` sin -v los conserva.
+# ──────────────────────────────────────────────────────────
+volumes:
+  calzado_jyr_data:

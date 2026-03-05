@@ -27,7 +27,7 @@ export function AuthLayout({ children, title, subtitle }: AuthLayoutProps) {
               alt="CALZADO J&R - Águila"
               className="h-10 w-10 object-contain"
             />
-            <span className="font-bold" style={{ color: '#FFD700', fontFamily: 'Montserrat, sans-serif', letterSpacing: 1, fontSize: '1.1rem' }}>CALZADO J&R</span>
+            <span className="font-bold" style={{ color: '#000', fontFamily: 'Montserrat, sans-serif', letterSpacing: 1, fontSize: '1.1rem' }}>CALZADO J&R</span>
           </Link>
           <Link
             to="/login"

@@ -245,12 +245,13 @@ python main.py
 
 Estará disponible en: `http://localhost:8000`
 
+
 ### 4. Frontend
 
 ```bash
 cd fe
-npm install
-npm run dev
+pnpm install
+pnpm run dev
 ```
 
 Estará disponible en: `http://localhost:5173`
@@ -411,10 +412,11 @@ cd be
 pytest tests/
 ```
 
+
 ### Frontend
 ```bash
 cd fe
-npm run test
+pnpm run test
 ```
 
 ---

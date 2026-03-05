@@ -156,7 +156,7 @@ services:
       # ¿Por qué este volumen anónimo en node_modules?
       # El volumen ./fe:/app monta el directorio del host dentro del
       # contenedor. Si node_modules no existe en el host, Docker lo
-      # crea vacío y tapa los que instaló npm durante el build.
+      # crea vacío y tapa los que instaló pnpm durante el build.
       # Este volumen anónimo "protege" node_modules del override.
       - /app/node_modules
 

@@ -213,8 +213,8 @@ python main.py
 
 # 3. Terminal 3: Frontend
 cd fe
-npm install
-npm run dev
+pnpm install
+pnpm run dev
 ```
 
 **Acceso:**

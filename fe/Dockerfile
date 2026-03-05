@@ -13,14 +13,14 @@
 # Stage 1 — base
 # Instala dependencias npm. Se reutiliza en dev y builder.
 # ¿Por qué copiar solo package*.json primero?
-#   Docker invalidará la capa de npm install SOLO si estos
+#   Docker invalidará la capa de pnpm install SOLO si estos
 #   archivos cambian, no si cambia el código fuente.
 # ────────────────────────────
 FROM node:20-alpine AS base
 
 # Habilitar pnpm vía Corepack (incluido en Node 20+, sin instalación adicional).
 # ¿Qué es Corepack? Gestor de gestores de paquetes integrado en Node.js.
-# ¿Por qué no "npm install -g pnpm"? Corepack es la forma oficial y no
+# ¿Por qué no instalar pnpm globalmente? Corepack es la forma oficial y no
 #   requiere npm ni acceso root; lee la versión de "packageManager" en package.json.
 RUN corepack enable && corepack prepare pnpm@latest --activate
 

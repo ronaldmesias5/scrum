@@ -17,12 +17,13 @@ export function AppLayout() {
       <header className="border-b border-gray-200 bg-white shadow-sm">
         <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-3">
           <Link to="/dashboard" className="flex items-center gap-2">
+            <img src="/logo.jpg" alt="CALZADO J&R" className="h-10 w-10 object-contain" />
             <span className="font-bold" style={{ color: '#000', fontFamily: 'Montserrat, sans-serif', letterSpacing: 1, fontSize: '1.1rem' }}>CALZADO J&R</span>
           </Link>
           <div className="flex items-center gap-4">
             <div className="flex items-center gap-2 text-sm text-gray-600">
               <User className="h-4 w-4" />
-              <span>{user?.full_name}</span>
+              <span>{user ? `${user.name} ${user.last_name}` : ''}</span>
             </div>
             <button
               onClick={logout}

@@ -33,8 +33,20 @@ export function LoginPage() {
     setIsLoading(true);
 
     try {
-      await login(formData);
-      navigate("/dashboard", { replace: true });
+      const userData = await login(formData);
+      
+      // Si el usuario debe cambiar contraseña en el primer inicio
+      if (userData?.must_change_password) {
+        navigate("/auth/change-password", { replace: true });
+        return;
+      }
+      
+      const role = userData?.role_name ?? '';
+      if (role === 'admin' || role === 'employee') {
+        navigate("/dashboard/admin", { replace: true });
+      } else {
+        navigate("/dashboard", { replace: true });
+      }
     } catch (err) {
       const message =
         err instanceof Error ? err.message : "Error al iniciar sesión";

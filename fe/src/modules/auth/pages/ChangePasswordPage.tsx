@@ -4,6 +4,7 @@
  */
 
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { Lock, KeyRound, ShieldCheck } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { InputField } from "@/components/ui/InputField";
@@ -11,7 +12,8 @@ import { Button } from "@/components/ui/Button";
 import { Alert } from "@/components/ui/Alert";
 
 export function ChangePasswordPage() {
-  const { changePassword } = useAuth();
+  const navigate = useNavigate();
+  const { changePassword, user } = useAuth();
 
   const [formData, setFormData] = useState({
     current_password: "",
@@ -46,6 +48,16 @@ export function ChangePasswordPage() {
       });
       setSuccess("Contraseña actualizada exitosamente.");
       setFormData({ current_password: "", new_password: "", confirmPassword: "" });
+      
+      // Redirigir al dashboard después de 1.5 segundos
+      setTimeout(() => {
+        const role = user?.role_name ?? '';
+        if (role === 'admin' || role === 'employee') {
+          navigate("/dashboard/admin", { replace: true });
+        } else {
+          navigate("/dashboard", { replace: true });
+        }
+      }, 1500);
     } catch (err) {
       const message =
         err instanceof Error ? err.message : "Error al cambiar la contraseña";

@@ -31,27 +31,11 @@ export function AuthLayout({ children, title, subtitle }: AuthLayoutProps) {
           </Link>
           <Link
             to="/login"
-            className="px-4 py-2 rounded-md bg-[#1e40af] text-white font-semibold text-sm shadow relative overflow-hidden"
+            className="px-4 py-2 rounded-md bg-[#1e40af] text-white font-semibold text-sm btn-pulse"
             style={{ textDecoration: 'none' }}
           >
             <span className="relative z-10">Iniciar sesión</span>
-            <span
-              className="absolute left-0 top-0 h-full w-full"
-              style={{
-                background: 'linear-gradient(120deg, transparent 0%, #FFD700 50%, transparent 100%)',
-                opacity: 0.7,
-                transform: 'translateX(-100%)',
-                animation: 'shine 1.5s infinite'
-              }}
-            />
           </Link>
-          <style>{`
-            @keyframes shine {
-              0% { transform: translateX(-100%); }
-              60% { transform: translateX(120%); }
-              100% { transform: translateX(120%); }
-            }
-          `}</style>
         </div>
       </header>
 

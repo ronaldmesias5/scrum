@@ -28,7 +28,7 @@ export function Button({
   const [isHovered, setIsHovered] = useState(false);
 
   const baseClasses =
-    "btn-shimmer rounded-lg px-6 py-3 text-sm font-semibold transition-colors duration-200 disabled:cursor-not-allowed disabled:opacity-60 relative overflow-hidden";
+    "btn-glow rounded-lg px-6 py-3 text-sm font-semibold transition-colors duration-200 disabled:cursor-not-allowed disabled:opacity-60 relative overflow-hidden";
 
   const variantClasses =
     variant === "primary"

@@ -13,10 +13,11 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from app.config import settings
 from app.database import engine, Base, SessionLocal
-from app.routers.auth import router as auth_router
-from app.routers.users import router as users_router
-from app.routers.admin import router as admin_router
-from app.routers.type_document import router as type_document_router
+from app.modules.auth.router import router as auth_router
+from app.modules.users.router import router as users_router
+from app.modules.admin.router import router as admin_router
+from app.modules.type_document.router import router as type_document_router
+from app.modules.dashboard_jefe.router import router as dashboard_jefe_router
 
 # Importar modelos para que SQLAlchemy los registre en Base.metadata
 from app.models import role, user, password_reset_token, type_document  # noqa: F401
@@ -79,6 +80,7 @@ app.include_router(auth_router)
 app.include_router(users_router)
 app.include_router(admin_router)
 app.include_router(type_document_router)
+app.include_router(dashboard_jefe_router)
 
 # ────────────────────────────
 # 📍 Endpoint raíz de bienvenida

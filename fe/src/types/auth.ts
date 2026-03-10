@@ -97,7 +97,7 @@ export interface AuthState {
 }
 
 export interface AuthContextType extends AuthState {
-  login: (data: LoginRequest) => Promise<void>;
+  login: (data: LoginRequest) => Promise<UserResponse>;
   register: (data: RegisterRequest) => Promise<void>;
   logout: () => void;
   changePassword: (data: ChangePasswordRequest) => Promise<void>;

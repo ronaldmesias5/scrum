@@ -61,5 +61,91 @@ body {
 }
 
 .btn-shimmer:hover::after {
-  animation: shimmer 0.6s ease-in-out;
+  animation: shimmer 0.6s ease-in-out infinite;
+}
+
+/* ════════════════════════════════════════
+   Efecto destello azul animado (botón azul)
+   ════════════════════════════════════════ */
+@keyframes blue-glow {
+  0% { box-shadow: 0 0 5px 0 #60a5fa66; }
+  50% { box-shadow: 0 0 20px 8px #60a5facc; }
+  100% { box-shadow: 0 0 5px 0 #60a5fa66; }
+}
+
+@keyframes white-glow {
+  0% { box-shadow: 0 0 0 0 rgba(255, 255, 255, 0.4); }
+  50% { box-shadow: 0 0 16px 4px rgba(255, 255, 255, 0.8); }
+  100% { box-shadow: 0 0 0 0 rgba(255, 255, 255, 0.4); }
+}
+
+@keyframes pulse-shadow {
+  0%, 100% { box-shadow: 0 0 5px 0 rgba(30, 58, 138, 0.4); }
+  50% { box-shadow: 0 0 16px 4px rgba(30, 58, 138, 0.8); }
+}
+
+@keyframes pulse-color {
+  0%, 100% { background-color: #1e40af; }
+  50% { background-color: #2563eb; }
+}
+
+.btn-glow {
+  animation: blue-glow 1.8s infinite;
+  position: relative;
+  z-index: 1;
+  transition: all 0.3s ease;
+}
+
+.btn-glow-white {
+  animation: white-glow 1.8s infinite;
+  position: relative;
+  z-index: 1;
+}
+
+.btn-pulse {
+  animation: pulse-shadow 1.8s infinite;
+  position: relative;
+  z-index: 1;
+}
+
+/* ════════════════════════════════════════
+   Efecto fill azul en hover (botón blanco)
+   ════════════════════════════════════════ */
+.btn-fill {
+  background-size: 200% 100%;
+  background-position: 100% 0;
+  background-image: linear-gradient(90deg, #1e40af 50%, transparent 50%);
+  transition: background-position 0.3s cubic-bezier(.4,0,.2,1), color 0.3s;
+  position: relative;
+}
+.btn-fill:hover,
+.btn-fill:focus {
+  background-position: 0% 0;
+  color: #fff !important;
+}
+
+/* ════════════════════════════════════════
+   Indicador de scroll — icono mouse
+   ════════════════════════════════════════ */
+@keyframes scroll-bounce {
+  0%, 100% { transform: translateY(0);   opacity: 0.8; }
+  50%       { transform: translateY(8px); opacity: 0.4; }
+}
+
+@keyframes wheel-drop {
+  0%   { transform: translateY(0);  opacity: 1; }
+  60%  { transform: translateY(6px); opacity: 0; }
+  61%  { transform: translateY(0);  opacity: 0; }
+  100% { transform: translateY(0);  opacity: 1; }
+}
+
+.scroll-mouse {
+  display: inline-block;
+  animation: scroll-bounce 1.6s ease-in-out infinite;
+  cursor: pointer;
+}
+
+.scroll-wheel {
+  animation: wheel-drop 1.6s ease-in-out infinite;
+  transform-origin: center 12px;
 }

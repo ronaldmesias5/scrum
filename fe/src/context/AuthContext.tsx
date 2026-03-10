@@ -7,7 +7,7 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import type { ReactNode } from "react";
-import * as authApi from "@/api/auth";
+import * as authApi from "@/modules/auth/services/api";
 import { AuthContext } from "@/context/authContextDef";
 import type {
   AuthContextType,
@@ -79,6 +79,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
       saveTokens(tokens.access_token, tokens.refresh_token);
       const userData = await authApi.getMe();
       setUser(userData);
+      return userData;
     },
     [saveTokens]
   );
